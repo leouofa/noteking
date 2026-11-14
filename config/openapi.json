@@ -1,0 +1,670 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Noteking Platform API",
+    "version": "1.0.0",
+    "description": "RESTful API for Noteking markdown note studio, projects, notes, attachments, and markdown rendering."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    { "name": "Projects", "description": "Manage note workspaces and projects" },
+    { "name": "Notes", "description": "Manage notes, scratchpads, templates, and pinned notes" },
+    { "name": "Attachments", "description": "Manage file attachments associated with notes" },
+    { "name": "Markdown", "description": "Markdown rendering and preview services" },
+    { "name": "System", "description": "System health, statistics, and platform metadata" }
+  ],
+  "paths": {
+    "/api/v1/stats": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Get system statistics",
+        "description": "Returns counts of total notes, standalone notes, pinned notes, projects, and attachments.",
+        "responses": {
+          "200": {
+            "description": "Current platform statistics",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Stats" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/openapi": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Get OpenAPI schema specification",
+        "description": "Returns the complete OpenAPI 3.1.0 JSON schema for the Noteking API.",
+        "responses": {
+          "200": {
+            "description": "OpenAPI schema document",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/markdown/render": {
+      "post": {
+        "tags": ["Markdown"],
+        "summary": "Render Markdown text to sanitized HTML",
+        "description": "Processes GitHub Flavored Markdown (tables, fenced code, autolinks) using Redcarpet and sanitizes allowed HTML tags.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MarkdownRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rendered HTML output",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MarkdownResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List all projects",
+        "description": "Retrieves projects ordered alphabetically by name with note counts and optional search filtering.",
+        "parameters": [
+          { "name": "q", "in": "query", "description": "Search keyword for project name or description", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "description": "Maximum number of projects to return (default 50, max 100)", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "description": "Offset pagination cursor", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of projects with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projects": { "type": "array", "items": { "$ref": "#/components/schemas/Project" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  },
+                  "required": ["projects", "meta"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create a new project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Get project details",
+        "description": "Retrieves project attributes along with associated notes.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details with note summaries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectWithNotes" }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Update a project",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          },
+          "404": { "description": "Project not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Projects"],
+        "summary": "Delete a project",
+        "description": "Deletes the project. Notes belonging to this project will be preserved as standalone notes (nullified project_id).",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Project deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Project not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/notes": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "List notes",
+        "description": "Retrieves notes with extensive filtering options (by project, standalone status, pinned state, or full-text search).",
+        "parameters": [
+          { "name": "q", "in": "query", "description": "Search keyword for note title or body", "schema": { "type": "string" } },
+          { "name": "project_id", "in": "query", "description": "Filter by associated project ID", "schema": { "type": "integer" } },
+          { "name": "scope", "in": "query", "description": "Scope filter: 'standalone' (unassigned) or 'all'", "schema": { "type": "string", "enum": ["standalone", "all"] } },
+          { "name": "pinned", "in": "query", "description": "Filter by pinned status ('true' or 'false')", "schema": { "type": "boolean" } },
+          { "name": "limit", "in": "query", "description": "Maximum number of notes to return (default 50, max 100)", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "description": "Offset pagination cursor", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of notes with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notes": { "type": "array", "items": { "$ref": "#/components/schemas/Note" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  },
+                  "required": ["notes", "meta"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Notes"],
+        "summary": "Create a new note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NoteInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NoteDetail" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notes/reorder_pinned": {
+      "patch": {
+        "tags": ["Notes"],
+        "summary": "Reorder pinned notes",
+        "description": "Updates the sequential pinned position of notes given an ordered list of note IDs.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "note_ids": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "description": "Array of note IDs in their new desired order"
+                  }
+                },
+                "required": ["note_ids"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pinned notes successfully reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Pinned notes reordered successfully" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notes/{id}": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get note details",
+        "description": "Retrieves note details, attachments, and optional rendered Markdown HTML.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } },
+          { "name": "render_markdown", "in": "query", "description": "Whether to render and include the sanitized HTML output of the markdown body", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detailed note object",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NoteDetail" }
+              }
+            }
+          },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "patch": {
+        "tags": ["Notes"],
+        "summary": "Update a note",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } },
+          { "name": "render_markdown", "in": "query", "description": "Whether to include rendered HTML in the response", "schema": { "type": "boolean" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/NoteInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NoteDetail" }
+              }
+            }
+          },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Notes"],
+        "summary": "Delete a note",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Note deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/notes/{id}/toggle_pin": {
+      "patch": {
+        "tags": ["Notes"],
+        "summary": "Toggle pin status",
+        "description": "Toggles note pinned state between pinned and unpinned, automatically assigning or clearing pinned_position.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pin state toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "pinned": { "type": "boolean" },
+                    "pinned_position": { "type": ["integer", "null"] },
+                    "note": { "$ref": "#/components/schemas/Note" }
+                  },
+                  "required": ["status", "pinned", "note"]
+                }
+              }
+            }
+          },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/notes/{id}/attachments": {
+      "get": {
+        "tags": ["Attachments"],
+        "summary": "List note attachments",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of attachments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+                  },
+                  "required": ["attachments"]
+                }
+              }
+            }
+          },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Attachments"],
+        "summary": "Upload files as attachments to a note",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" },
+                    "description": "One or more files to attach to the note"
+                  }
+                },
+                "required": ["files"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Files attached successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+                  },
+                  "required": ["status", "attachments"]
+                }
+              }
+            }
+          },
+          "400": { "description": "No files provided", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Note not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/notes/{id}/attachments/{attachment_id}": {
+      "delete": {
+        "tags": ["Attachments"],
+        "summary": "Delete a note attachment",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Note ID", "schema": { "type": "integer" } },
+          { "name": "attachment_id", "in": "path", "required": true, "description": "ActiveStorage Attachment ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attachment purged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Attachment removed successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Note or Attachment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Architecture Decisions" },
+          "description": { "type": ["string", "null"], "example": "Notes on infrastructure and API design" },
+          "notes_count": { "type": "integer", "example": 5 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "notes_count", "created_at", "updated_at"]
+      },
+      "ProjectInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Architecture Decisions" },
+          "description": { "type": "string", "example": "Notes on infrastructure and API design" }
+        },
+        "required": ["name"]
+      },
+      "ProjectWithNotes": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Project" },
+          {
+            "type": "object",
+            "properties": {
+              "notes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "title": { "type": "string" },
+                    "pinned": { "type": "boolean" },
+                    "pinned_position": { "type": ["integer", "null"] },
+                    "updated_at": { "type": "string", "format": "date-time" }
+                  },
+                  "required": ["id", "title", "pinned"]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Note": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "project_id": { "type": ["integer", "null"], "example": 2 },
+          "project_name": { "type": ["string", "null"], "example": "Architecture Decisions" },
+          "title": { "type": "string", "example": "ADR 001: Local-First Architecture" },
+          "body": { "type": "string", "example": "# Context and Goals..." },
+          "pinned": { "type": "boolean", "example": true },
+          "pinned_position": { "type": ["integer", "null"], "example": 1 },
+          "attachments_count": { "type": "integer", "example": 2 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "title", "pinned", "attachments_count", "created_at", "updated_at"]
+      },
+      "NoteDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Note" },
+          {
+            "type": "object",
+            "properties": {
+              "rendered_html": { "type": "string", "description": "Rendered GFM sanitized HTML if requested via render_markdown=true" },
+              "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+            }
+          }
+        ]
+      },
+      "NoteInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "ADR 001: Local-First Architecture" },
+          "body": { "type": "string", "example": "# Context and Goals..." },
+          "project_id": { "type": ["integer", "null"], "example": 1 },
+          "pinned": { "type": "boolean", "example": false },
+          "pinned_position": { "type": ["integer", "null"] }
+        },
+        "required": ["title"]
+      },
+      "Attachment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 10 },
+          "filename": { "type": "string", "example": "schema.sql" },
+          "content_type": { "type": ["string", "null"], "example": "application/sql" },
+          "byte_size": { "type": "integer", "example": 2048 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "url": { "type": "string", "example": "http://localhost:3000/rails/active_storage/blobs/..." }
+        },
+        "required": ["id", "filename", "byte_size", "created_at", "url"]
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "total_notes": { "type": "integer", "example": 42 },
+          "standalone_notes": { "type": "integer", "example": 12 },
+          "pinned_notes": { "type": "integer", "example": 5 },
+          "total_projects": { "type": "integer", "example": 6 },
+          "total_attachments": { "type": "integer", "example": 8 }
+        },
+        "required": ["total_notes", "standalone_notes", "pinned_notes", "total_projects", "total_attachments"]
+      },
+      "MarkdownRequest": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "example": "# Hello World\n\n- item 1\n- item 2" }
+        },
+        "required": ["text"]
+      },
+      "MarkdownResponse": {
+        "type": "object",
+        "properties": {
+          "html": { "type": "string", "example": "<h1>Hello World</h1>\n<ul>\n<li>item 1</li>\n<li>item 2</li>\n</ul>\n" }
+        },
+        "required": ["html"]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "integer", "example": 50 },
+          "offset": { "type": "integer", "example": 0 },
+          "total_count": { "type": "integer", "example": 120 }
+        },
+        "required": ["limit", "offset", "total_count"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Validation failed" },
+          "details": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["Title can't be blank"]
+          }
+        },
+        "required": ["error", "details"]
+      }
+    }
+  }
+}
