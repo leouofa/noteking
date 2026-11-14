@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo.jpg" alt="NoteKing Logo" width="400">
+</p>
+
 # Noteking
 
 <p align="center">
