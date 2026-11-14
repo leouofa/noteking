@@ -15,6 +15,7 @@
   <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4"></a>
   <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-16%2B-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <img src="https://img.shields.io/badge/Architecture-Local--First-22c55e?style=flat-square" alt="Local-First Architecture">
+  <a href="https://github.com/leouofa/noteking-mcp"><img src="https://img.shields.io/badge/MCP_Server-noteking--mcp-6366f1?style=flat-square&logo=github&logoColor=white" alt="Noteking MCP Server"></a>
 </p>
 
 ---
@@ -60,7 +61,8 @@ Software engineers and architects frequently juggle technical designs, architect
 - **Preference Persistence**: Sidebar collapse state is remembered across refreshes and page transitions via `localStorage`.
 - **Mobile First-Class Drawer**: On mobile screens (< 768px), the sidebar expands to full width with main view masking, automatically closing upon link selection for seamless navigation.
 
-### 🚀 REST API & OpenAPI 3.1
+### 🤖 Model Context Protocol (MCP) & REST API
+- **Official MCP Server**: Connect AI coding assistants (Claude Desktop, Cursor, Gemini, Antigravity) directly to Noteking via [`noteking-mcp`](https://github.com/leouofa/noteking-mcp).
 - **RESTful API & OpenAPI 3.1**: Full programmatic endpoints for notes, projects, attachments, search, and markdown rendering.
 
 ---
@@ -186,13 +188,26 @@ bin/bundler-audit
 
 ---
 
-## REST API Specification
+## REST API & MCP Integration
 
-Noteking includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for programmatic integration.
+Noteking includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for easy programmatic integration and Model Context Protocol (MCP) server integration.
+
+### Official Model Context Protocol (MCP) Server
+
+Connect Noteking directly to your AI coding agents, IDEs, and assistant workflows (such as Claude Desktop, Cursor, Gemini, and Antigravity) using the official MCP server:
+
+🔗 **[Noteking MCP Server (`noteking-mcp`)](https://github.com/leouofa/noteking-mcp)**
+
+The MCP server provides 18 tools, 5 resources (`noteking://`), and built-in/dynamic prompts for AI agents to:
+- Browse, search, read, create, update, and safely append to notes and projects
+- Toggle and reorder pinned notes
+- Inspect and manage ActiveStorage file attachments
+- Render Markdown via Noteking's server-side Redcarpet pipeline
+- Author structured ADRs/notes, synthesize project workspaces, and populate `{{variable}}` note templates
 
 ### OpenAPI Specification
 - **Live Endpoint**: `GET http://localhost:3000/api/v1/openapi.json`
-- **Specification File**: [`openapi.json`](file:///Users/leonid/src/noteking/openapi.json) located in repository root
+- **Specification File**: [`openapi.json`](openapi.json) located in repository root
 
 ### API Endpoints Summary
 
