@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_192117) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,11 +42,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "projects", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
+  create_table "note_versions", force: :cascade do |t|
+    t.bigint "note_id", null: false
+    t.integer "version_number", null: false
+    t.string "title", null: false
+    t.text "body", default: "", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.index ["note_id", "created_at"], name: "index_note_versions_on_note_id_and_created_at"
+    t.index ["note_id", "version_number"], name: "index_note_versions_on_note_id_and_version_number", unique: true
+    t.index ["note_id"], name: "index_note_versions_on_note_id"
   end
 
   create_table "notes", force: :cascade do |t|
@@ -62,7 +66,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
     t.index ["updated_at"], name: "index_notes_on_updated_at"
   end
 
+  create_table "projects", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "note_versions", "notes", on_delete: :cascade
   add_foreign_key "notes", "projects", on_delete: :nullify
 end
