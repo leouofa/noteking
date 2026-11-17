@@ -16,6 +16,7 @@
   <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-16%2B-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <img src="https://img.shields.io/badge/Architecture-Local--First-22c55e?style=flat-square" alt="Local-First Architecture">
   <a href="https://github.com/leouofa/noteking-mcp"><img src="https://img.shields.io/badge/MCP_Server-noteking--mcp-6366f1?style=flat-square&logo=github&logoColor=white" alt="Noteking MCP Server"></a>
+  <a href="https://github.com/leouofa/noteking-tui"><img src="https://img.shields.io/badge/TUI-noteking--tui-dea584?style=flat-square&logo=rust&logoColor=white" alt="Noteking TUI"></a>
 </p>
 
 ---
@@ -61,8 +62,9 @@ Software engineers and architects frequently juggle technical designs, architect
 - **Preference Persistence**: Sidebar collapse state is remembered across refreshes and page transitions via `localStorage`.
 - **Mobile First-Class Drawer**: On mobile screens (< 768px), the sidebar expands to full width with main view masking, automatically closing upon link selection for seamless navigation.
 
-### 🤖 Model Context Protocol (MCP) & REST API
+### 🤖 Model Context Protocol (MCP), TUI & REST API
 - **Official MCP Server**: Connect AI coding assistants (Claude Desktop, Cursor, Gemini, Antigravity) directly to Noteking via [`noteking-mcp`](https://github.com/leouofa/noteking-mcp).
+- **Terminal User Interface (TUI)**: Fast, keyboard-driven terminal workspace powered by Rust & Ratatui via [`noteking-tui`](https://github.com/leouofa/noteking-tui).
 - **RESTful API & OpenAPI 3.1**: Full programmatic endpoints for notes, projects, attachments, search, and markdown rendering.
 
 ---
@@ -195,9 +197,9 @@ bin/bundler-audit
 
 ---
 
-## REST API & MCP Integration
+## REST API, MCP & TUI Integration
 
-Noteking includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for easy programmatic integration and Model Context Protocol (MCP) server integration.
+Noteking includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for easy programmatic integration, Model Context Protocol (MCP) server workflows, and terminal client connectivity.
 
 ### Official Model Context Protocol (MCP) Server
 
@@ -211,6 +213,18 @@ The MCP server provides 18 tools, 5 resources (`noteking://`), and built-in/dyna
 - Inspect and manage ActiveStorage file attachments
 - Render Markdown via Noteking's server-side Redcarpet pipeline
 - Author structured ADRs/notes, synthesize project workspaces, and populate `{{variable}}` note templates
+
+### Official Terminal User Interface (TUI)
+
+Manage and author notes directly from your terminal using the official Rust & Ratatui TUI client:
+
+🔗 **[Noteking TUI (`noteking-tui`)](https://github.com/leouofa/noteking-tui)**
+
+The TUI provides a fast, keyboard-driven 3-pane workspace featuring:
+- **3-Pane Master–Detail Layout**: Navigate Scopes & Projects, Notes (with pin markers, checklist progress, and attachment badges), and Note Detail in Styled GFM Preview or line-numbered Raw Markdown modes
+- **Interactive Checklists & Quick Append**: Toggle `- [ ]` / `- [x]` task items in place and quickly append Markdown paragraphs, logs, or tasks under specific section headers
+- **Full CRUD & `$EDITOR` Integration**: Create, edit, pin/reorder, and delete projects and notes, or press `E` to edit note bodies directly in `$EDITOR` (`nvim`, `vim`, etc.)
+- **Attachments, Live Search & Clipboard**: Upload, download, or purge ActiveStorage attachments, filter notes with real-time `/` full-text search, and one-key yank to system clipboard
 
 ### OpenAPI Specification
 - **Live Endpoint**: `GET http://localhost:3000/api/v1/openapi.json`
