@@ -40,10 +40,15 @@ class NotesController < ApplicationController
   end
 
   def update
+    auto_save = params[:auto_save].to_s == "1" || params[:auto_save].to_s == "true"
+    @note.skip_versioning = auto_save
+
     if @note.update(note_params)
+      @note.record_version_snapshot! unless auto_save
+
       respond_to do |format|
         format.html { redirect_to @note, notice: "Note updated successfully." }
-        format.json { render json: { status: :ok, note: @note } }
+        format.json { render json: { status: :ok, note: @note, version_number: @note.current_version_number } }
         format.turbo_stream
       end
     else
